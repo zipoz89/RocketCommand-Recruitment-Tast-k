@@ -12,7 +12,7 @@ public class GameobjectPooler<T> where T : IPoolableObject
     public bool IsExpandable = true;
 
     private Queue<T> pool = new Queue<T>();
-    public List<T> active = new List<T>();
+    public List<T> activeObjects = new List<T>();
 
 
 
@@ -71,7 +71,7 @@ public class GameobjectPooler<T> where T : IPoolableObject
         if (pool.Count > 0)
         { 
             result = pool.Dequeue();
-            active.Add(result);
+            activeObjects.Add(result);
         }
 
         return result;
@@ -82,7 +82,7 @@ public class GameobjectPooler<T> where T : IPoolableObject
     // </summary>
     public void Return(T obj) 
     {
-        active.Remove(obj);
+        activeObjects.Remove(obj);
         obj.OnReturned();
         pool.Enqueue(obj);
     }

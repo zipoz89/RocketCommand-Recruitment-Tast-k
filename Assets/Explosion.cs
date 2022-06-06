@@ -3,24 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 
-public class Explosion : MonoBehaviour, IPoolableObject
+public class Explosion : MonoBehaviour
 {
-    private bool isActive = false;
-    public bool IsActive { get => isActive; }
-
     private float explodeTime;
     [SerializeField] private Gradient colorVariation;
     [SerializeField] private SpriteRenderer sprite;
-    public delegate void ExplosionEnded(Explosion boom);
+    public delegate void ExplosionEnded();
     public event ExplosionEnded OnExplosionEnded;
 
-
-
-    public void Explode(Vector2 pos,float explodeRadius,float explodeTime) 
+    public void Explode(float explodeRadius,float explodeTime) 
     {
         sprite.color = colorVariation.Evaluate(Random.Range(0,1));
         this.explodeTime = explodeTime;
-        this.transform.position = pos;
         this.transform.DOScale(new Vector3(explodeRadius, explodeRadius, explodeRadius), explodeTime).SetEase(Ease.OutQuad).OnComplete(Implode);
     }
 
@@ -31,29 +25,6 @@ public class Explosion : MonoBehaviour, IPoolableObject
 
     private void Finish() 
     {
-        OnExplosionEnded(this);
+        OnExplosionEnded();
     }
-
-    private void SetActive(bool mode)
-    {
-        isActive = mode;
-        this.gameObject.SetActive(mode);
-    }
-
-    #region IPoolableObject
-    public void OnSpawned()
-    {
-        SetActive(true);
-    }
-
-    public void OnGenerated()
-    {
-        SetActive(false);
-    }
-
-    public void OnReturned()
-    {
-        SetActive(false);
-    }
-    #endregion IPoolableObject
 }
