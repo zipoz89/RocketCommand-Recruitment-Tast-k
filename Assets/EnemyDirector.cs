@@ -4,15 +4,25 @@ using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 
-public class GameDirector : MonoBehaviour
+public class EnemyDirector : MonoBehaviour
 {
     [SerializeField] private GameObject nukePrefab;
-    [SerializeField] private GameObject explosionPrefab;
     [SerializeField] private Transform SpawnArea;
     [SerializeField] private PlayerFacade player;
 
+    [SerializeField] private float spawnInterval = 1f;
+    private float timeFromLastSpawn = 0;
+
+    private int spawnedEnemies { get => nukePooler.activeObjects.Count; }
+    private int maxEnemies 
+    {
+        get 
+        {
+            return difficultyLevel + 2;
+        }
+    }
+
     private GameobjectPooler<Nuke> nukePooler = new GameobjectPooler<Nuke>();
-    private GameobjectPooler<Explosion> explosionPooler = new GameobjectPooler<Explosion>();
 
     private int difficultyLevel = 1;
 
@@ -21,11 +31,28 @@ public class GameDirector : MonoBehaviour
     private void Start()
     {
         nukePooler.Initialize(nukePrefab);
-        explosionPooler.Initialize(explosionPrefab);
+        timeFromLastSpawn = spawnInterval;
     }
     private void Update()
     {
+        SpawnNukesIfAble();
         HandleActiveNukes();
+    }
+
+    private void SpawnNukesIfAble()
+    {
+        if (spawnedEnemies < maxEnemies && player.IsAlive)
+        {
+            if (timeFromLastSpawn <= 0)
+            {
+                timeFromLastSpawn = spawnInterval;
+                SpawnNuke();
+            }
+            else 
+            {
+                timeFromLastSpawn -= Time.deltaTime;
+            }
+        }
     }
 
     [ContextMenu("Get from pool")]
@@ -35,31 +62,16 @@ public class GameDirector : MonoBehaviour
         if (nuke != null)
         { 
             nuke.OnNukeDetonated += DetonateNuke;
-            nuke.Send(GetRandomSpawnPos(),player.GetRandomArtilleryTransform(),1);
+            nuke.Send(GetRandomSpawnPos(),player.GetRandomTarget(),1);
         }
     }
 
-    public void SpawnExplosion(Vector2 pos)
-    {
-        Explosion boom = explosionPooler.Get();
-        if (boom != null)
-        {
-            boom.OnExplosionEnded += ClearExplosion;
-            boom.Explode(pos,2, 1);
-        }
-    }
+
 
     private void DetonateNuke(Nuke nuke)
     {
-        SpawnExplosion(nuke.transform.position);
         nuke.OnNukeDetonated -= DetonateNuke;
         nukePooler.Return(nuke);
-    }
-
-    private void ClearExplosion(Explosion boom) 
-    {
-        boom.OnExplosionEnded -= ClearExplosion;
-        explosionPooler.Return(boom);
     }
 
     private Vector2 GetRandomSpawnPos() 
@@ -74,9 +86,9 @@ public class GameDirector : MonoBehaviour
 
     private void HandleActiveNukes() 
     {
-        foreach (var nuke in nukePooler.active)
+        foreach (var nuke in nukePooler.activeObjects)
         {
-            nuke.Fall();
+            nuke.Travel();
         }
     }
 }

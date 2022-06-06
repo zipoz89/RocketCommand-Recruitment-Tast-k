@@ -6,10 +6,13 @@ public class PlayerFacade : MonoBehaviour
 {
     [SerializeField] private PlayerBase PlayerBase;
 
-    public Transform GetRandomArtilleryTransform() 
+    public bool IsAlive { get => PlayerBase.IsAlive; }
+
+    public Vector2 GetRandomTarget() 
     {
         var t =  PlayerBase.GetRandomArtilleryTransform();
-        Debug.Log(t.position);
         return t;
     }
+
+
 }
