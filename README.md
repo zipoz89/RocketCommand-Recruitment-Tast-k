@@ -4,8 +4,8 @@ Stuff I used:
 
 -Object Pooling
 
--Design Patterns
+-Command design pattern
+
+-State machine design pattern
 
 -Events
-
--Jobs system
